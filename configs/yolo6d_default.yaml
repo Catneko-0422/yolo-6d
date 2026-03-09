@@ -1,0 +1,10 @@
+model:
+  in_channels: 3
+  base_channels: 16
+  num_classes: 80
+  depth_scale: 1.0
+
+training:
+  batch_size: 16
+  epochs: 300
+  learning_rate: 0.001
