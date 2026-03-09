@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Project specific
+# Ignore local test images if needed, otherwise remove this line
+test.jpg
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

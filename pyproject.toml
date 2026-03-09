@@ -1,0 +1,12 @@
+[project]
+name = "yolo-6d"
+version = "0.1.0"
+description = "Single Stage Monocular 6D Pose Estimation with Keypoint Enhancements"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "numpy>=2.4.2",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+]
