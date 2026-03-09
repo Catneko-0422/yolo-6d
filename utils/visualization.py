@@ -154,17 +154,35 @@ def visualize_heads():
     plt.tight_layout()
     plt.show(block=True)
 
-def visualize_yolo6d_full(image_path):
+def visualize_yolo6d_full(image_path, weights_path=None):
     print("\nInitializing Full YOLO-6D Architecture visualization process...")
     img = load_image_tensor(image_path, target_size=(640, 640))
     if img is None: return
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = YOLO6D(in_channels=3, base_channels=16, num_classes=80)
+    
+    if weights_path is not None and os.path.exists(weights_path):
+        print(f"Loading weights from {weights_path}...")
+        model.load_state_dict(torch.load(weights_path, map_location=device, weights_only=True))
+    else:
+        print("Using random initialized weights (no weights provided or path invalid).")
+        
+    model.to(device)
+    img = img.to(device)
     model.eval()
+    
     with torch.no_grad():
         outputs = model(img)
     scale_idx = 0
     scale_name = "P3 (Small Objects)"
-    box_out, kpt_out, rot_out, depth_out = outputs[scale_idx]
+    # outputs[scale_idx] is a tuple of (box_out, kpt_out, rot_out, depth_out)
+    # move back to cpu for visualization
+    box_out = outputs[scale_idx][0].cpu()
+    kpt_out = outputs[scale_idx][1].cpu()
+    rot_out = outputs[scale_idx][2].cpu()
+    depth_out = outputs[scale_idx][3].cpu()
+    img_cpu = img.cpu()
     
     plt.figure(figsize=(15, 6))
     plt.suptitle(f"Full YOLO-6D End-to-End Output ({scale_name})", fontsize=16)
@@ -175,14 +193,14 @@ def visualize_yolo6d_full(image_path):
         (f"Depth Head\n{list(depth_out.shape[1:])}", depth_out)
     ]
     plt.subplot(1, 5, 1)
-    plt.imshow(img[0].permute(1, 2, 0).numpy())
-    plt.title(f"Input Image\n{list(img.shape[2:])}")
+    plt.imshow(img_cpu[0].permute(1, 2, 0).numpy())
+    plt.title(f"Input Image\n{list(img_cpu.shape[2:])}")
     plt.axis("off")
     
     for i, (title, tensor) in enumerate(plot_items):
         plt.subplot(1, 5, i + 2)
         avg_map = tensor[0].mean(dim=0).unsqueeze(0).unsqueeze(0)
-        avg_map_resized = F.interpolate(avg_map, size=img.shape[2:], mode="bilinear", align_corners=False).squeeze()
+        avg_map_resized = F.interpolate(avg_map, size=img_cpu.shape[2:], mode="bilinear", align_corners=False).squeeze()
         plt.imshow(avg_map_resized.numpy(), cmap="plasma")
         plt.title(title)
         plt.axis("off")
